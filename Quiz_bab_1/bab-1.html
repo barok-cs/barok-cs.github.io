@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Kosakata Jepang - Bab 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        jepang: {
+                            red: '#BC002D',
+                            white: '#FFFFFF',
+                            light: '#F3F4F6',
+                            dark: '#1F2937'
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .option-hover {
+                @apply hover:border-jepang-red hover:bg-jepang-light transition-all duration-200;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-jepang-dark min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-[clamp(1.6rem,3vw,2.2rem)] font-bold text-jepang-red mb-2">
+                <i class="fa fa-book mr-2"></i>Quiz Kosakata Jepang
+            </h1>
+            <p class="text-gray-600">Bab 1 - Minna no Nihongo</p>
+            <div class="mt-4 h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div id="progress-bar" class="h-full bg-jepang-red w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <!-- Card Soal -->
+        <div id="question-container" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6 min-h-[380px] flex flex-col justify-center">
+            <div id="loading" class="text-center py-10">
+                <i class="fa fa-spinner fa-spin text-jepang-red text-4xl mb-4"></i>
+                <p>Menyiapkan soal...</p>
+            </div>
+
+            <div id="question-content" class="hidden">
+                <div class="mb-6">
+                    <span class="text-sm font-semibold text-jepang-red bg-jepang-light px-3 py-1 rounded-full">
+                        Soal <span id="q-number">1</span> dari 38
+                    </span>
+                </div>
+                
+                <div class="text-center mb-8">
+                    <h2 id="q-word" class="text-4xl md:text-5xl font-bold mb-2">わたし</h2>
+                    <p class="text-gray-500">Arti dari kata di atas adalah:</p>
+                </div>
+
+                <div id="options-container" class="space-y-3 mb-8">
+                    <!-- Pilihan ganda dimuat pakai JS -->
+                </div>
+
+                <div id="feedback" class="hidden text-center py-3 rounded-lg font-semibold mb-4"></div>
+
+                <button id="next-btn" class="hidden w-full bg-jepang-red text-white py-3 px-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
+                    Soal Berikutnya <i class="fa fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hasil Akhir -->
+        <div id="result-container" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center">
+            <i class="fa fa-graduation-cap text-jepang-red text-5xl mb-4"></i>
+            <h2 class="text-2xl font-bold mb-2">Selesai!</h2>
+            <p class="text-gray-600 mb-4">Kamu telah menyelesaikan kuis Bab 1.</p>
+            
+            <div class="flex justify-center items-end gap-6 mb-6">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-jepang-red" id="score-value">0</p>
+                    <p class="text-sm text-gray-500">Benar</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-gray-400" id="wrong-value">0</p>
+                    <p class="text-sm text-gray-500">Salah</p>
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                <div id="score-bar" class="bg-jepang-red h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+            
+            <p class="text-xl font-semibold mb-6">Nilai: <span id="percentage">0</span>%</p>
+
+            <button onclick="location.reload()" class="bg-jepang-red text-white py-3 px-8 rounded-lg font-semibold hover:bg-opacity-90">
+                Mulai Ulang <i class="fa fa-refresh ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Daftar lengkap 38 Kosakata BAB 1
+        const vocabularyBab1 = [
+            { id: 1, jp: "わたし", idn: "Saya" },
+            { id: 2, jp: "あなた", idn: "Kamu" },
+            { id: 3, jp: "あのひと", idn: "Orang itu / Dia" },
+            { id: 4, jp: "あのかた", idn: "Orang itu (sopan)" },
+            { id: 5, jp: "～さん", idn: "Saudara / Tuan / Nyonya" },
+            { id: 6, jp: "～ちゃん", idn: "Panggilan akrab (untuk anak)" },
+            { id: 7, jp: "～じん", idn: "Orang dari..." },
+            { id: 8, jp: "せんせい", idn: "Guru / Dosen / Bapak Ibu Guru" },
+            { id: 9, jp: "きょうし", idn: "Guru (untuk diri sendiri)" },
+            { id: 10, jp: "がくせい", idn: "Siswa / Murid / Mahasiswa" },
+            { id: 11, jp: "かいしゃいん", idn: "Pegawai perusahaan" },
+            { id: 12, jp: "しゃいん", idn: "Pegawai / Karyawan" },
+            { id: 13, jp: "ぎんこういん", idn: "Pegawai bank" },
+            { id: 14, jp: "いしゃ", idn: "Dokter" },
+            { id: 15, jp: "けんきゅうしゃ", idn: "Peneliti" },
+            { id: 16, jp: "だいがく", idn: "Universitas" },
+            { id: 17, jp: "びょういん", idn: "Rumah sakit" },
+            { id: 18, jp: "だれ", idn: "Siapa (biasa)" },
+            { id: 19, jp: "どなた", idn: "Siapa (sopan)" },
+            { id: 20, jp: "～さい", idn: "Umur..." },
+            { id: 21, jp: "なんさい", idn: "Umur berapa? (biasa)" },
+            { id: 22, jp: "おいくつ", idn: "Umur berapa? (sopan)" },
+            { id: 23, jp: "はい", idn: "Iya / Ya" },
+            { id: 24, jp: "いいえ", idn: "Tidak / Bukan" },
+            { id: 25, jp: "はじめまして", idn: "Perkenalkan / Senang berkenalan" },
+            { id: 26, jp: "～からきました", idn: "Datang dari..." },
+            { id: 27, jp: "どうぞよろしくおねがいします", idn: "Terimalah perkenalan saya" },
+            { id: 28, jp: "おなまえは", idn: "Nama Anda siapa?" },
+            { id: 29, jp: "しつれいですが", idn: "Permisi / Maaf mengganggu" },
+            { id: 30, jp: "アメリカ", idn: "Amerika" },
+            { id: 31, jp: "イギリス", idn: "Inggris" },
+            { id: 32, jp: "インド", idn: "India" },
+            { id: 33, jp: "インドネシア", idn: "Indonesia" },
+            { id: 34, jp: "かんこく", idn: "Korea" },
+            { id: 35, jp: "ちゅうごく", idn: "China" },
+            { id: 36, jp: "ドイツ", idn: "Jerman" },
+            { id: 37, jp: "にほん", idn: "Jepang" },
+            { id: 38, jp: "フランス", idn: "Perancis" }
+        ];
+
+        // Variabel Global
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let answered = false;
+
+        // Elemen DOM
+        const loadingEl = document.getElementById('loading');
+        const questionContentEl = document.getElementById('question-content');
+        const questionNumberEl = document.getElementById('q-number');
+        const questionWordEl = document.getElementById('q-word');
+        const optionsContainerEl = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        const nextBtnEl = document.getElementById('next-btn');
+        const progressBarEl = document.getElementById('progress-bar');
+        const resultContainerEl = document.getElementById('result-container');
+        const questionContainerEl = document.getElementById('question-container');
+        const scoreValueEl = document.getElementById('score-value');
+        const wrongValueEl = document.getElementById('wrong-value');
+        const scoreBarEl = document.getElementById('score-bar');
+        const percentageEl = document.getElementById('percentage');
+
+        // Fungsi mulai kuis
+        function startQuiz() {
+            loadingEl.classList.add('hidden');
+            questionContentEl.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // Fungsi memuat soal
+        function loadQuestion() {
+            answered = false;
+            selectedAnswer = null;
+            feedbackEl.classList.add('hidden');
+            feedbackEl.classList.remove('bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+            nextBtnEl.classList.add('hidden');
+            optionsContainerEl.innerHTML = '';
+
+            const currentWord = vocabularyBab1[currentQuestionIndex];
+            
+            // Update nomor soal & kata
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            questionWordEl.textContent = currentWord.jp;
+            
+            // Update progress bar
+            const progress = ((currentQuestionIndex + 1) / vocabularyBab1.length) * 100;
+            progressBarEl.style.width = `${progress}%`;
+
+            // Buat pilihan jawaban (acak)
+            const options = generateOptions(currentWord.idn);
+            
+            // Tampilkan pilihan
+            options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'border-2 border-gray-200 rounded-lg p-4 cursor-pointer option-hover';
+                optionEl.dataset.answer = option;
+                optionEl.innerHTML = `
+                    <span class="font-semibold mr-3">${String.fromCharCode(65 + index)}.</span>
+                    <span>${option}</span>
+                `;
+                optionEl.addEventListener('click', () => selectOption(optionEl, option, currentWord.idn));
+                optionsContainerEl.appendChild(optionEl);
+            });
+        }
+
+        // Fungsi membuat pilihan jawaban acak
+        function generateOptions(correctAnswer) {
+            // Ambil jawaban salah secara acak dari daftar
+            const allAnswers = vocabularyBab1.map(item => item.idn);
+            let wrongAnswers = allAnswers.filter(ans => ans !== correctAnswer);
+            
+            // Acak dan ambil 3 salah
+            wrongAnswers = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 3);
+            
+            // Gabungkan jawaban benar + salah, lalu acak urutannya
+            const allOptions = [...wrongAnswers, correctAnswer];
+            return allOptions.sort(() => Math.random() - 0.5);
+        }
+
+        // Fungsi saat memilih jawaban
+        function selectOption(element, selected, correct) {
+            if (answered) return; // Cegah pilih ulang
+
+            // Hapus gaya pilihan lain
+            document.querySelectorAll('#options-container > div').forEach(el => {
+                el.classList.remove('border-jepang-red', 'bg-jepang-light', 'border-green-500', 'bg-green-50', 'border-red-500', 'bg-red-50');
+            });
+
+            answered = true;
+
+            if (selected === correct) {
+                // Jawaban Benar
+                score++;
+                element.classList.add('border-green-500', 'bg-green-50');
+                feedbackEl.textContent = '✅ Jawaban Benar!';
+                feedbackEl.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                // Jawaban Salah
+                element.classList.add('border-red-500', 'bg-red-50');
+                feedbackEl.textContent = `❌ Jawaban Salah. Yang benar: ${correct}`;
+                feedbackEl.classList.add('bg-red-100', 'text-red-700');
+                
+                // Tandai jawaban benar
+                document.querySelectorAll('#options-container > div').forEach(el => {
+                    if (el.dataset.answer === correct) {
+                        el.classList.add('border-green-500', 'bg-green-50');
+                    }
+                });
+            }
+
+            feedbackEl.classList.remove('hidden');
+            nextBtnEl.classList.remove('hidden');
+        }
+
+        // Fungsi ke soal berikutnya
+        nextBtnEl.addEventListener('click', () => {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < vocabularyBab1.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        });
+
+        // Tampilkan hasil akhir
+        function showResult() {
+            questionContainerEl.classList.add('hidden');
+            resultContainerEl.classList.remove('hidden');
+            
+            const wrong = vocabularyBab1.length - score;
+            const percent = Math.round((score / vocabularyBab1.length) * 100);
+
+            scoreValueEl.textContent = score;
+            wrongValueEl.textContent = wrong;
+            percentageEl.textContent = percent;
+            scoreBarEl.style.width = `${percent}%`;
+        }
+
+        // Jalankan kuis saat halaman siap
+        window.addEventListener('DOMContentLoaded', startQuiz);
+    </script>
+</body>
+</html>
